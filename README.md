@@ -10,9 +10,9 @@ Bayram YILDIZ (Backend Developer)<br/>
 I was responsible for project management. I worked as both frontend developer and backend developer. I also took care of the security side.
 
 ##### Used Technologies
-React
-Spring Boot
-MySQL
+React<br/>
+Spring Boot<br/>
+MySQL<br/>
 ##### About Commits
 The first commit to this repository is the school submitted version. In the next commits, I plan to refactor the project, improve it in terms of security, and add new functionality (INDIVIDUALLY).
 
