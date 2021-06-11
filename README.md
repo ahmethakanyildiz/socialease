@@ -16,5 +16,5 @@ MySQL
 ##### About Commits
 The first commit to this repository is the school submitted version. In the next commits, I plan to refactor the project, improve it in terms of security, and add new functionality (INDIVIDUALLY).
 
-<span style="color:red;font-weight:bold">Warning</span>
+##### Warning
 Lombok is a code generation library that can be integrated into the IDE while developing a Java project. Lombok integration is required in the developer version of this project! Otherwise, it will give an error.
