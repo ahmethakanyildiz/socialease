@@ -1,0 +1,20 @@
+# Mergen - Socialease
+This is a project developed for the Software Engineering Lab in the spring semester of 2021. Developed by a team of 4 people.
+## Our Video: [Socialease - Final Presentation Video](https://www.youtube.com/watch?v=y8nfwa5V0Xw)
+##### Team Members
+Ahmet Hakan YILDIZ (Frontend Developer - Backend Developer)
+Onur ZEREN (Backend Developer)
+Ahmet Fatih SOLAK (Backend Developer)
+Bayram YILDIZ (Backend Developer)
+
+I was responsible for project management. I worked as both frontend developer and backend developer. I also took care of the security side.
+
+##### Used Technologies
+React
+Spring Boot
+MySQL
+##### About Commits
+The first commit to this repository is the school submitted version. In the next commits, I plan to refactor the project, improve it in terms of security, and add new functionality (INDIVIDUALLY).
+
+<span style="color:red;font-weight:bold">Warning</span>
+Lombok is a code generation library that can be integrated into the IDE while developing a Java project. Lombok integration is required in the developer version of this project! Otherwise, it will give an error.
