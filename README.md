@@ -2,10 +2,10 @@
 This is a project developed for the Software Engineering Lab in the spring semester of 2021. Developed by a team of 4 people.
 ## Our Video: [Socialease - Final Presentation Video](https://www.youtube.com/watch?v=y8nfwa5V0Xw)
 ##### Team Members
-Ahmet Hakan YILDIZ (Frontend Developer - Backend Developer)
-Onur ZEREN (Backend Developer)
-Ahmet Fatih SOLAK (Backend Developer)
-Bayram YILDIZ (Backend Developer)
+Ahmet Hakan YILDIZ (Frontend Developer - Backend Developer)<br/>
+Onur ZEREN (Backend Developer)<br/>
+Ahmet Fatih SOLAK (Backend Developer)<br/>
+Bayram YILDIZ (Backend Developer)<br/>
 
 I was responsible for project management. I worked as both frontend developer and backend developer. I also took care of the security side.
 
