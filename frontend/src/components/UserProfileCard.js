@@ -5,20 +5,20 @@ import { styles } from "../assets/styles/userPCStyles";
 import defaultPP from "../assets/images/default_profile_photo.png";
 class UserProfileCard extends Component {
   render() {
-    let image=defaultPP;
-    if(!(this.props.image===null || this.props.image===undefined)){
-      image=this.props.image
+    let image = defaultPP;
+    if (!(this.props.image === null || this.props.image === undefined)) {
+      image = this.props.image;
     }
     return (
       <div style={styles.cardStyle}>
-        <div style={{width:"auto"}}>
-        <img
-          alt={this.props.username}
-          src={image}
-          className="rounded-circle shadow"
-          width="300"
-          height="300"
-        />
+        <div style={{ width: "auto" }}>
+          <img
+            alt={this.props.username}
+            src={image}
+            className="rounded-circle shadow"
+            width="300"
+            height="300"
+          />
         </div>
         <div style={{ width: "97%", marginLeft: "3%" }}>
           <h5 style={styles.displayNameStyle}>{this.props.displayName}</h5>
@@ -53,11 +53,14 @@ class UserProfileCard extends Component {
               ) : (
                 <></>
               )}
-              {this.props.username !== this.props.loggedInUsername &&
-              this.props.isAdmin !== -1 &&
-              this.props.isAdmin !== -2 &&
-              this.props.isAdmin !== -3 ? (
-                <Link to={{pathname:"/user/report-user", uname:{username:this.props.username}}} style={{marginLeft:3}}>
+              {this.props.username !== this.props.loggedInUsername ? (
+                <Link
+                  to={{
+                    pathname: "/user/report-user",
+                    uname: { username: this.props.username },
+                  }}
+                  style={{ marginLeft: 3 }}
+                >
                   <h5 style={styles.editButtonStyle}>Report User</h5>
                 </Link>
               ) : (

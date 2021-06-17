@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.mergen.socialease.model.Admin;
 import com.mergen.socialease.model.ClubRequest;
 import com.mergen.socialease.model.User;
-import com.mergen.socialease.service.repository.ClubRequestRepository;
-import com.mergen.socialease.service.repository.UserRepository;
+import com.mergen.socialease.repository.ClubRequestRepository;
+import com.mergen.socialease.repository.UserRepository;
 import com.mergen.socialease.shared.CurrentUser;
 import com.mergen.socialease.shared.GenericResponse;
 
@@ -46,6 +46,7 @@ public class ClubRequestController {
 		return new GenericResponse("Club Request sent successfully!");
 	}
 
+	@SuppressWarnings("unchecked")
 	@GetMapping("/mergen/admin/getclubrequests")
 	public JSONArray getClubRequests(@CurrentUser Admin a) {
 

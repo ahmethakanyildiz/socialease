@@ -6,7 +6,7 @@ import javax.validation.ConstraintValidatorContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.mergen.socialease.model.User;
-import com.mergen.socialease.service.repository.UserRepository;
+import com.mergen.socialease.repository.UserRepository;
 
 public class UniqueEmailValidator implements ConstraintValidator<UniqueEmail, String>{
 

@@ -33,12 +33,15 @@ class ClubRatePage extends Component {
         count = count + 1;
       });
       totalrate = totalrate / count;
-      if(totalrate<=5){
+      if (totalrate <= 5) {
         this.setState({ rating: totalrate });
-      }else{
+      } else {
         this.setState({ rating: 0 });
       }
-      const response3 = await checkMyReview(this.props.loggedInUsername);
+      const response3 = await checkMyReview(
+        this.props.loggedInUsername,
+        this.state.CID
+      );
       if (response3.data.message.includes("YOK")) {
         this.setState({ amIsendReview: false });
       }
@@ -72,11 +75,11 @@ class ClubRatePage extends Component {
           count = count + 1;
         });
         totalrate = totalrate / count;
-        if(totalrate<=5){
-            this.setState({ rating: totalrate });
-          }else{
-            this.setState({ rating: 0 });
-          }
+        if (totalrate <= 5) {
+          this.setState({ rating: totalrate });
+        } else {
+          this.setState({ rating: 0 });
+        }
         this.setState({ reviewList: response2.data });
       }
     } catch (e) {
@@ -103,7 +106,7 @@ class ClubRatePage extends Component {
       border: "1px solid #9E9E9E",
       borderRadius: 10,
       wordBreak: "break-word",
-      margin:10,
+      margin: 10,
     };
     console.log(this.state.content + "/" + this.state.rate);
     return (
@@ -198,10 +201,7 @@ class ClubRatePage extends Component {
           }}
         >
           {this.state.reviewList.map((r) => (
-            <div
-              key={r.userName}
-              style={cardStyle}
-            >
+            <div key={r.userName} style={cardStyle}>
               <h5 style={{ ...textStyle, fontWeight: "bold" }}>
                 {"@" + r.userName}
               </h5>

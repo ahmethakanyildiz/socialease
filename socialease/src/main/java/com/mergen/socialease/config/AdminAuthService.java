@@ -7,7 +7,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.mergen.socialease.model.Admin;
-import com.mergen.socialease.service.repository.AdminRepository;
+import com.mergen.socialease.repository.AdminRepository;
 
 @Service
 public class AdminAuthService implements UserDetailsService{

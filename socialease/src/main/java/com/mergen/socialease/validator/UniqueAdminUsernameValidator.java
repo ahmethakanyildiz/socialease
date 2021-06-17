@@ -6,7 +6,7 @@ import javax.validation.ConstraintValidatorContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.mergen.socialease.model.Admin;
-import com.mergen.socialease.service.repository.AdminRepository;
+import com.mergen.socialease.repository.AdminRepository;
 
 public class UniqueAdminUsernameValidator implements ConstraintValidator<UniqueAdminUsername, String>{
 

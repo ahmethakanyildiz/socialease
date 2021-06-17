@@ -7,7 +7,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.mergen.socialease.model.User;
-import com.mergen.socialease.service.repository.UserRepository;
+import com.mergen.socialease.repository.UserRepository;
 
 @Service
 public class UserAuthService implements UserDetailsService{

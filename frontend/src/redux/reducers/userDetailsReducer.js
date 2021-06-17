@@ -10,12 +10,12 @@ const userDetailsReducer = (state = { ...defaultState }, action) => {
     if (action.payload.clubs === null) {
       return {
         ...action.payload,
-        clubs:[],
-        subclubs:[]
+        clubs: [],
+        subclubs: [],
       };
     } else {
       return {
-        ...action.payload
+        ...action.payload,
       };
     }
   }

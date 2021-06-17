@@ -2,7 +2,6 @@ package com.mergen.socialease.controller;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -14,22 +13,21 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.mergen.socialease.model.Admin;
 import com.mergen.socialease.model.Club;
 import com.mergen.socialease.model.Question;
 import com.mergen.socialease.model.SubClub;
-import com.mergen.socialease.model.SubClubAdminRequest;
 import com.mergen.socialease.model.User;
 import com.mergen.socialease.req_classes.SurveyAnswers;
 import com.mergen.socialease.req_classes.SurveyAnswersWithUserId;
 import com.mergen.socialease.req_classes.SurveyQuestion;
-import com.mergen.socialease.service.repository.ClubRepository;
-import com.mergen.socialease.service.repository.QuestionRepository;
-import com.mergen.socialease.service.repository.SubClubAdminRequestRepository;
-import com.mergen.socialease.service.repository.SubClubRepository;
-import com.mergen.socialease.service.repository.UserRepository;
+import com.mergen.socialease.repository.ClubRepository;
+import com.mergen.socialease.repository.QuestionRepository;
+import com.mergen.socialease.repository.SubClubAdminRequestRepository;
+import com.mergen.socialease.repository.SubClubRepository;
+import com.mergen.socialease.repository.UserRepository;
 import com.mergen.socialease.shared.CurrentUser;
 import com.mergen.socialease.shared.GenericResponse;
 
@@ -47,6 +45,7 @@ public class ClubController {
 	@Autowired
 	private UserRepository userRepository;
 
+	@SuppressWarnings("unused")
 	@Autowired
 	private SubClubAdminRequestRepository subClubAdminRequestRepository;
 
@@ -400,7 +399,19 @@ public class ClubController {
 		return newClub;
 
 	}
+	
+	@SuppressWarnings("unchecked")
+	@GetMapping("/getnameoftheclub")
+	public JSONObject getNameOfTheClub(@RequestParam Long id, @CurrentUser User user) {
+		JSONObject json = new JSONObject();
+		try {
+			json.put("nameOfClub", clubRepository.findByclubid(id).getClubName());
+		}
+		catch(Exception e) {}
+		return json;
+	}
 
+	@SuppressWarnings("unchecked")
 	@PostMapping("/mergen/admin/saveclub")
 	public GenericResponse saveClub(@RequestBody JSONObject json) {
 		String clubName = (String) json.get("name");
@@ -411,7 +422,9 @@ public class ClubController {
 			return new GenericResponse("Error: There is already a club named by this!");
 		}
 
+		@SuppressWarnings("rawtypes")
 		ArrayList<JSONObject> subClubs = (ArrayList) json.get("subClubList");
+		@SuppressWarnings({ "rawtypes" })
 		ArrayList<JSONObject> questions = (ArrayList) json.get("questionList");
 		if (subClubs.size() == 0 || questions.size() == 0) {
 			return new GenericResponse("Error: You must add sub-clubs/questions!");
@@ -422,6 +435,7 @@ public class ClubController {
 
 		List<String> checkForUnique = new ArrayList<String>();
 		for (int i = 0; i < subClubs.size(); i++) {
+			@SuppressWarnings("rawtypes")
 			Map subclub = subClubs.get(i);
 			String name = (String) subclub.get("name");
 			if (name == null || name.length() == 0 || name.equals("General")) {
@@ -442,6 +456,7 @@ public class ClubController {
 		}
 
 		for (int i = 0; i < questions.size(); i++) {
+			@SuppressWarnings("rawtypes")
 			Map q = questions.get(i);
 			String question = (String) q.get("question");
 			if (question == null || question.length() == 0) {
@@ -454,6 +469,7 @@ public class ClubController {
 		clubRepository.save(newClub);
 
 		for (int i = 0; i < subClubs.size(); i++) {
+			@SuppressWarnings("rawtypes")
 			Map subclub = subClubs.get(i);
 			SubClub newSC = new SubClub();
 			newSC.setName((String) subclub.get("name"));
@@ -467,6 +483,7 @@ public class ClubController {
 		}
 
 		for (int i = 0; i < questions.size(); i++) {
+			@SuppressWarnings("rawtypes")
 			Map q = questions.get(i);
 			Question newQ = new Question();
 			newQ.setQuestion((String) q.get("question"));
@@ -606,7 +623,7 @@ public class ClubController {
 		return new GenericResponse("Club is deleted!");
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@PutMapping("/mergen/admin/updateclub")
 	public GenericResponse updateClub(@RequestBody JSONObject json) {
 

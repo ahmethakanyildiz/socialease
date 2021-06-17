@@ -1,4 +1,4 @@
-package com.mergen.socialease.service.repository;
+package com.mergen.socialease.repository;
 
 import java.util.List;
 

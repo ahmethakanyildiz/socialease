@@ -12,10 +12,9 @@ import com.mergen.socialease.model.Admin;
 import com.mergen.socialease.model.SubClub;
 import com.mergen.socialease.model.SubClubAdminRequest;
 import com.mergen.socialease.model.User;
-import com.mergen.socialease.service.repository.QuestionRepository;
-import com.mergen.socialease.service.repository.SubClubAdminRequestRepository;
-import com.mergen.socialease.service.repository.SubClubRepository;
-import com.mergen.socialease.service.repository.UserRepository;
+import com.mergen.socialease.repository.SubClubAdminRequestRepository;
+import com.mergen.socialease.repository.SubClubRepository;
+import com.mergen.socialease.repository.UserRepository;
 import com.mergen.socialease.shared.CurrentUser;
 import com.mergen.socialease.shared.GenericResponse;
 
@@ -81,6 +80,7 @@ public class SubClubAdminRequestController {
 	}
 	
 	
+	@SuppressWarnings("unchecked")
 	@GetMapping("/mergen/admin/getadminrequests")
 	public JSONArray getAdminRequests() {
 		

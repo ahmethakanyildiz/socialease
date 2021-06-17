@@ -1,8 +1,5 @@
 package com.mergen.socialease.model;
 
-import java.sql.Timestamp;
-
-import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

@@ -1,78 +1,48 @@
 package com.mergen.socialease.controller;
 
-import java.util.Base64;
-import java.util.Base64.Encoder;
-import java.util.Base64.Decoder;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.io.IOException;
-import java.util.ArrayList;
-
 import javax.validation.Valid;
 
 import org.json.simple.JSONObject;
 import org.json.simple.JSONArray;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonAnyFormatVisitor;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonBooleanFormatVisitor;
-import com.mergen.socialease.error.AuthException;
-import com.mergen.socialease.error.ErrorResponse;
 import com.mergen.socialease.model.ConfirmationToken;
 import com.mergen.socialease.model.User;
 import com.mergen.socialease.model.Creds;
 import com.mergen.socialease.model.Admin;
 import com.mergen.socialease.model.Club;
 import com.mergen.socialease.model.SubClub;
-import com.mergen.socialease.model.Question;
-import com.mergen.socialease.model.Ban;
 import com.mergen.socialease.model.ForgotToken;
 import com.mergen.socialease.service.EmailSenderService;
-import com.mergen.socialease.service.repository.ConfirmationTokenRepository;
-import com.mergen.socialease.service.repository.UserRepository;
-import com.mergen.socialease.service.repository.ClubRepository;
-import com.mergen.socialease.service.repository.QuestionRepository;
-import com.mergen.socialease.service.repository.SubClubRepository;
-import com.mergen.socialease.service.repository.BanRepository;
-import com.mergen.socialease.service.repository.ForgotTokenRepository;
+import com.mergen.socialease.repository.ConfirmationTokenRepository;
+import com.mergen.socialease.repository.UserRepository;
+import com.mergen.socialease.repository.ClubRepository;
+import com.mergen.socialease.repository.SubClubRepository;
+import com.mergen.socialease.repository.ForgotTokenRepository;
 import com.mergen.socialease.shared.CurrentUser;
 import com.mergen.socialease.shared.GenericResponse;
 import com.mergen.socialease.shared.Views;
-import com.mergen.socialease.controller.SubClubController;
-import org.springframework.web.multipart.MultipartFile;
 
-import net.bytebuddy.description.type.TypeDescription.Generic;
-
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
 @RestController
-public class UserAccountController {
+public class UserController {
 	@Autowired
 	private UserRepository userRepository;
 
@@ -87,9 +57,6 @@ public class UserAccountController {
 
 	@Autowired
 	private ForgotTokenRepository forgotTokenRepository;
-
-	private BanRepository banRepository;
-
 	
 	
 	@Autowired
@@ -178,6 +145,7 @@ public class UserAccountController {
 	}
 
 	//EĞER USER O CLUB'A VEYA SUBCLUB'A ÜYE DEĞİLSE, HATA VERECEK!
+	@SuppressWarnings("unchecked")
 	@GetMapping("/getuserwithmode")
 	public JSONArray getUser(@RequestParam Long mode, Long id,@CurrentUser User user){
 		if(id<0)
@@ -218,41 +186,8 @@ public class UserAccountController {
 		}
 		return false;
 	}
-	
-	@GetMapping("/getnameofthesubclub")
-	public JSONObject getNameOfTheSubClub(@RequestParam Long id, @CurrentUser User user) {
-		JSONObject json = new JSONObject();
-		try {
-			json.put("nameOfSubClub", subClubRepository.findBysubClubid(id).getName());
-		}
-		catch(Exception e) {}
-		return json;
-	}
 
-	@GetMapping("/getnameoftheclub")
-	public JSONObject getNameOfTheClub(@RequestParam Long id, @CurrentUser User user) {
-		JSONObject json = new JSONObject();
-		try {
-			json.put("nameOfClub", clubRepository.findByclubid(id).getClubName());
-		}
-		catch(Exception e) {}
-		return json;
-	}
-	
-	@GetMapping("mergen/admin/getuserwithmode")
-	public JSONArray getUserForAdmin(@RequestParam Long mode, Long id, @CurrentUser Admin admin){
-		if(id<0)
-			throw new Error();
-		if(mode == 1)
-			return getClubUsers(id);
-		else if(mode == 2)
-			return getSubClubUsers(id);
-		else if(mode == 3)
-			return getAllUsers();
-		else
-			throw new Error();
-	}
-
+	@SuppressWarnings("unchecked")
 	private JSONObject getSingleUser(Long userId){
 		User user = userRepository.findByUserid(userId);
 		JSONObject userJson = new JSONObject();
@@ -263,19 +198,7 @@ public class UserAccountController {
 		return userJson;
 	}
 
-	private JSONArray getAllUsers(){
-		JSONArray allUsers = new JSONArray();
-
-		try {
-			for(User u : userRepository.findAll()){
-				allUsers.add(getSingleUser(u.getUserid()));
-			}
-		}catch(Exception e) {
-		}
-
-		return allUsers;
-	}
-
+	@SuppressWarnings("unchecked")
 	private JSONArray getClubUsers(Long clubId){
 		JSONArray clubUsers = new JSONArray();
 		Club c = clubRepository.findByclubid(clubId);
@@ -290,6 +213,7 @@ public class UserAccountController {
 		return clubUsers;
 	}
 	
+	@SuppressWarnings("unchecked")
 	private JSONArray getSubClubUsers(Long subClubId){
 
 		JSONArray subClubUsers = new JSONArray();
@@ -307,6 +231,7 @@ public class UserAccountController {
 	}
 
 	//EĞER CURRENT USER İLE, ARADIĞI USER'IN ORTAK HİÇBİR KULÜBÜ YOKSA HATA VERECEK!
+	@SuppressWarnings("unchecked")
 	@PostMapping("/getuserdetails")
 	public JSONObject getUserDetails(@RequestBody JSONObject usernameee,@CurrentUser User currentUser){
 		String username = (String) usernameee.get("username");
@@ -548,5 +473,12 @@ public class UserAccountController {
         
         
     	return new GenericResponse("Success: Profile updated");
+	}
+	
+	@PostMapping("/deleteuser")
+	public GenericResponse deleteUser(@CurrentUser User user){
+		//USER İLE İLGİLİ DİĞER HER ŞEY DE SİLİNMELİ!
+		userRepository.delete(user);
+		return new GenericResponse("Success: Your account is deleted");
 	}
 }

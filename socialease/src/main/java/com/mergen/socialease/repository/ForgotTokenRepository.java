@@ -1,6 +1,5 @@
-package com.mergen.socialease.service.repository;
+package com.mergen.socialease.repository;
 
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.mergen.socialease.model.ForgotToken;

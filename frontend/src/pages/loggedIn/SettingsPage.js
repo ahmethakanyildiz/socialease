@@ -3,10 +3,21 @@ import { connect } from "react-redux";
 import defaultPP from "../../assets/images/default_profile_photo.png";
 import { styles as buttonStyles } from "../../assets/styles/common/buttonStyles";
 import alertify from "alertifyjs";
-import { userDetailsHandler } from "../../redux/actions/userDetailsActions";
-import { sendImage, deleteImage, updateUser } from "../../api/ApiCalls";
+import {
+  clearUserDetails,
+  userDetailsHandler,
+} from "../../redux/actions/userDetailsActions";
+import {
+  sendImage,
+  deleteImage,
+  updateUser,
+  deleteUser,
+} from "../../api/ApiCalls";
 import { withRouter } from "react-router-dom";
-import { userUpdatedSuccess } from "../../redux/actions/authActions";
+import {
+  logoutSuccess,
+  userUpdatedSuccess,
+} from "../../redux/actions/authActions";
 
 class SettingsPage extends Component {
   state = {
@@ -108,78 +119,80 @@ class SettingsPage extends Component {
   };
 
   updateUser = async () => {
-    const req={
-      username:this.state.username,
-      displayname:this.state.displayName,
-      biographi:this.state.biographi,
-      password:this.state.password
-    }
+    const req = {
+      username: this.state.username,
+      displayname: this.state.displayName,
+      biographi: this.state.biographi,
+      password: this.state.password,
+    };
 
-    try{
-      const response = await updateUser(this.props.loggedInUsername,req);
-      if(response.data.message.includes("Success")){
+    try {
+      const response = await updateUser(this.props.loggedInUsername, req);
+      if (response.data.message.includes("Success")) {
         alertify.success("Profile is updated!");
-        let usernameChange=0;
-        let passwordChange=0;
-        if(this.state.username!==this.props.auuuuth.username){
-          usernameChange=1;
+        let usernameChange = 0;
+        let passwordChange = 0;
+        if (this.state.username !== this.props.auuuuth.username) {
+          usernameChange = 1;
         }
-        if(this.state.password!==this.props.auuuuth.password){
-          if(!(this.state.password==="" || this.state.password===null)){
-            passwordChange=1;
+        if (this.state.password !== this.props.auuuuth.password) {
+          if (!(this.state.password === "" || this.state.password === null)) {
+            passwordChange = 1;
           }
         }
-        if(usernameChange===1 && passwordChange ===1){
-            const aState = {
-              id:this.props.auuuuth.id,
-              username:this.state.username,
-              password:this.state.password,
-              isRegistered:this.props.auuuuth.isRegistered,
-              isSurveyAnswered:this.props.auuuuth.isSurveyAnswered,
-              isLoggedIn:this.props.auuuuth.isLoggedIn
-            }
-            const uState={
-              ...this.props.userDetails,
-              username:this.state.username
-            }
-            this.props.dispatch(userUpdatedSuccess(aState));
-        }
-        else if(usernameChange===1 && passwordChange ===0){
+        if (usernameChange === 1 && passwordChange === 1) {
           const aState = {
-            id:this.props.auuuuth.id,
-            username:this.state.username,
-            password:this.props.auuuuth.password,
-            isRegistered:this.props.auuuuth.isRegistered,
-            isSurveyAnswered:this.props.auuuuth.isSurveyAnswered,
-            isLoggedIn:this.props.auuuuth.isLoggedIn
-          }
-          const uState={
-            ...this.props.userDetails,
-            username:this.state.username
-          }
+            id: this.props.auuuuth.id,
+            username: this.state.username,
+            password: this.state.password,
+            isRegistered: this.props.auuuuth.isRegistered,
+            isSurveyAnswered: this.props.auuuuth.isSurveyAnswered,
+            isLoggedIn: this.props.auuuuth.isLoggedIn,
+          };
           this.props.dispatch(userUpdatedSuccess(aState));
-        }
-        else if(usernameChange===0 && passwordChange ===1){
+        } else if (usernameChange === 1 && passwordChange === 0) {
           const aState = {
-            id:this.props.auuuuth.id,
-            username:this.props.auuuuth.username,
-            password:this.state.password,
-            isRegistered:this.props.auuuuth.isRegistered,
-            isSurveyAnswered:this.props.auuuuth.isSurveyAnswered,
-            isLoggedIn:this.props.auuuuth.isLoggedIn
-          }
+            id: this.props.auuuuth.id,
+            username: this.state.username,
+            password: this.props.auuuuth.password,
+            isRegistered: this.props.auuuuth.isRegistered,
+            isSurveyAnswered: this.props.auuuuth.isSurveyAnswered,
+            isLoggedIn: this.props.auuuuth.isLoggedIn,
+          };
+          this.props.dispatch(userUpdatedSuccess(aState));
+        } else if (usernameChange === 0 && passwordChange === 1) {
+          const aState = {
+            id: this.props.auuuuth.id,
+            username: this.props.auuuuth.username,
+            password: this.state.password,
+            isRegistered: this.props.auuuuth.isRegistered,
+            isSurveyAnswered: this.props.auuuuth.isSurveyAnswered,
+            isLoggedIn: this.props.auuuuth.isLoggedIn,
+          };
           this.props.dispatch(userUpdatedSuccess(aState));
         }
         this.props.history.push("/home");
-      }
-      else{
+      } else {
         alertify.error("Profile cannot updated!");
         this.props.history.push("/home");
       }
-    }catch(e){
+    } catch (e) {
       console.log(e);
     }
-  }
+  };
+
+  deleteUser = async () => {
+    try {
+      this.props.dispatch(clearUserDetails());
+      const response = await deleteUser();
+      this.props.dispatch(logoutSuccess());
+      if (response.data.message.includes("Success")) {
+        alertify.success("Your account is deleted!");
+      }
+    } catch (e) {
+      alertify.error("Ops, There is a problem!");
+    }
+  };
 
   render() {
     let customButton = {
@@ -216,7 +229,6 @@ class SettingsPage extends Component {
       );
     }
     return (
-      
       <div
         style={{
           backgroundColor: "#FAFAFA",
@@ -254,7 +266,7 @@ class SettingsPage extends Component {
         ) : (
           buttons
         )}
-        <div style={{marginTop:10}}>Username</div>
+        <div style={{ marginTop: 10 }}>Username</div>
         <div className="form-group">
           <input
             className="form-control"
@@ -265,7 +277,7 @@ class SettingsPage extends Component {
             style={{ width: 400 }}
           />
         </div>
-        <div style={{marginTop:10}}>Display Name</div>
+        <div style={{ marginTop: 10 }}>Display Name</div>
         <div className="form-group">
           <input
             className="form-control"
@@ -276,7 +288,7 @@ class SettingsPage extends Component {
             style={{ width: 400 }}
           />
         </div>
-        <div style={{marginTop:10}}>Biographi</div>
+        <div style={{ marginTop: 10 }}>Biographi</div>
         <div className="form-group">
           <input
             className="form-control"
@@ -287,7 +299,7 @@ class SettingsPage extends Component {
             style={{ width: 400 }}
           />
         </div>
-        <div style={{marginTop:10}}>Password</div>
+        <div style={{ marginTop: 10 }}>Password</div>
         <div className="form-group">
           <input
             className="form-control"
@@ -298,7 +310,24 @@ class SettingsPage extends Component {
             style={{ width: 400 }}
           />
         </div>
-        <div style={buttonStyles.defaultRedButton} onClick={()=>this.updateUser()}>Send</div>
+        <div
+          style={buttonStyles.defaultRedButton}
+          onClick={() => this.updateUser()}
+        >
+          Send
+        </div>
+        <div
+          style={{
+            ...buttonStyles.defaultRedButton,
+            marginTop: 40,
+            marginBottom: 40,
+            backgroundColor: "black",
+            color: "red",
+          }}
+          onClick={() => this.deleteUser()}
+        >
+          Delete User
+        </div>
       </div>
     );
   }
@@ -308,7 +337,7 @@ const mapStateToProps = (store) => {
   return {
     loggedInUsername: store.authReducer.username,
     userDetails: store.userDetailsReducer,
-    auuuuth:store.authReducer
+    auuuuth: store.authReducer,
   };
 };
 

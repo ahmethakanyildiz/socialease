@@ -1,37 +1,29 @@
 package com.mergen.socialease.controller;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
-import com.mergen.socialease.model.Club;
 import com.mergen.socialease.model.Comment;
 import com.mergen.socialease.model.Post;
 import com.mergen.socialease.model.SubClub;
 import com.mergen.socialease.model.User;
-import com.mergen.socialease.service.repository.ClubRepository;
-import com.mergen.socialease.service.repository.CommentRepository;
-import com.mergen.socialease.service.repository.PostRepository;
-import com.mergen.socialease.service.repository.SubClubRepository;
-import com.mergen.socialease.service.repository.UserRepository;
+import com.mergen.socialease.repository.CommentRepository;
+import com.mergen.socialease.repository.PostRepository;
+import com.mergen.socialease.repository.SubClubRepository;
+import com.mergen.socialease.repository.UserRepository;
 import com.mergen.socialease.shared.CurrentUser;
 import com.mergen.socialease.shared.GenericResponse;
 
@@ -46,9 +38,6 @@ public class PostController {
 	
 	@Autowired
 	private UserRepository userRepository;
-
-	@Autowired
-	private ClubRepository clubRepository;
 	
 	@Autowired
 	private SubClubRepository subClubRepository;
@@ -240,6 +229,7 @@ public class PostController {
 		
 	}
 	
+	@SuppressWarnings("unchecked")
 	@GetMapping("/{subclubid}/getposts")
 	public JSONArray getPostsinSubClub(@PathVariable long subclubid, @CurrentUser User currentUser) {
 		
@@ -328,6 +318,7 @@ public class PostController {
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	@GetMapping("{userid}/getuserposts")
 	public JSONArray getOwnPosts(@PathVariable long userid, @CurrentUser User currentUser) {
 		
@@ -485,6 +476,7 @@ public class PostController {
 	
 	
 	
+	@SuppressWarnings("unchecked")
 	@GetMapping("/getpostshomepage")
 	public JSONArray getPostsHomePage(@CurrentUser User currentUser ) {
 		
@@ -568,6 +560,7 @@ public class PostController {
 	
 	
 	
+	@SuppressWarnings("unchecked")
 	@GetMapping("/getlikedposts")
 	public JSONArray getLikedPosts(@CurrentUser User currentUser) {
 		
@@ -633,6 +626,7 @@ public class PostController {
 	}
 	
 	
+	@SuppressWarnings("unchecked")
 	@GetMapping("/getpost/{postid}")
 	public JSONObject getPost(@PathVariable long postid, @CurrentUser User currentUser) {
 		
@@ -764,62 +758,6 @@ public class PostController {
 		return postJson;
 	}
 	
-	@PutMapping("/makecomment")
-	public GenericResponse makeComment(@RequestBody Comment comment, @CurrentUser User currentUser) {
-		
-		String content = comment.getContent();
-		long userid = comment.getUserid();
-		long postid = comment.getPostid();
-		
-		
-		if(currentUser.getUserid()!= userid || userRepository.findByUserid(userid)==null) {
-			
-			return new GenericResponse("Error: You are not allowed to share this comment");
-			
-		}
-		
-		if(content== null|| content.equals("")) {
-			return new GenericResponse("Error: You cannot make empty comments");
-		}
-		
-		User user = userRepository.findByUserid(userid);
-		Post post = postRepository.findByPostid(postid);
-		
-		if(user==null || post==null) {
-			return new GenericResponse("Error: You cannot share comment ");
-		}
-	
-		
-		commentRepository.save(comment);
-		
-		String userCommentList = user.getCommentList();
-		String postCommentList = post.getCommentList();
-		
-		if(userCommentList == null) {
-			 userCommentList= Long.toString(comment.getCommentid());
-		}
-		else {
-			userCommentList = userCommentList + "," + comment.getCommentid();
-		}
-		
-		if(postCommentList == null) {
-			postCommentList = Long.toString(comment.getCommentid());
-		}
-		else {
-			postCommentList= postCommentList + "," + comment.getCommentid();
-		}
-		
-		user.setCommentList(userCommentList);
-		userRepository.save(user);
-		post.setCommentList(postCommentList);
-		postRepository.save(post);
-		
-		
-		return new GenericResponse("Comment is published ");
-		
-	}
-	
-	
 	@PutMapping("/likepost")
 	public GenericResponse likePost(@RequestBody JSONObject json, @CurrentUser User currentUser) {
 		System.out.println(json);
@@ -900,53 +838,6 @@ public class PostController {
 		
 	}
 	
-	@PutMapping("/deletecomment")
-	private GenericResponse deleteComment(@RequestBody JSONObject json, @CurrentUser User currentUser) {
-		
-		long commentid = Long.valueOf((Integer) json.get("cid"));
-		Comment deletedComment = commentRepository.findByCommentid(commentid);
-		
-		if(deletedComment == null) {
-			return new GenericResponse("Error: Comment could not be found");
-		}
-		
-		if(currentUser.getUserid() != deletedComment.getUserid()) {
-			return new GenericResponse("Error: You are not allowed to delete this comment");
-		}
-		
-		
-		//Delete comment from user's comment list
-		
-		User commenterUser = userRepository.findByUserid(deletedComment.getUserid());
-		String userCommentList = commenterUser.getCommentList();
-		
-		if(userCommentList==null) {
-			return new GenericResponse("Error: Something went wrong while deleting the comment");
-		}
-		
-		commenterUser.setCommentList(removeFromStringList(userCommentList, Long.toString(commentid)));
-		
-		// Delete comment from Post's commentList
-		Post post = postRepository.findByPostid(deletedComment.getPostid());
-		
-		String postCommentList = post.getCommentList();
-		
-		if(postCommentList == null) {
-			return new GenericResponse("Error: Something went wrong while deleting the comment");
-		}
-		
-		post.setCommentList(removeFromStringList(postCommentList, Long.toString(commentid)));
-		
-		userRepository.save(commenterUser);
-		postRepository.save(post);
-		
-		commentRepository.delete(deletedComment);
-		
-		return new GenericResponse("Comment is successfully deleted");
-		
-	}
-	
-	
 	private String removeFromStringList(String strList, String removedid) {
 		
 		
@@ -985,56 +876,6 @@ public class PostController {
 	        
 	        return commaseparatedlist;
 		}
-	}
-
-	@PostMapping("/deleteuser")
-	public GenericResponse deleteUser(@CurrentUser User user){
-
-		List<Post> postlist = postRepository.findByUseridOrderByTimestamp(user.getUserid());
-		for(Post p : postlist ){
-			JSONObject json = new JSONObject();
-			json.put("postid",p.getPostid());
-			deletePost(json, user);
-		}
-
-		List<Comment> commentlist = commentRepository.findAllByuserid(user.getUserid());
-		for(Comment c : commentlist ){
-			JSONObject json = new JSONObject();
-			json.put("cid",c.getCommentid());
-			deleteComment(json, user);
-		}
-
-		if(user.getClubList()!=null){
-			String[] clubids = user.getClubList().split(",");
-			for(String st : clubids){
-				Club c = clubRepository.findByclubid(Long.parseLong(st));
-				c.setUserList(removeFromStringList(c.getUserList(), Long.toString(user.getUserid())));
-				clubRepository.save(c);
-			}
-		}
-
-		if(user.getSubClubList()!=null){
-			String[] subclubids = user.getSubClubList().split(",");
-			for(String st : subclubids){
-				String s = st.split("-")[0];
-				SubClub sc = subClubRepository.findBysubClubid(Long.parseLong(s.substring(1)));
-				sc.setUserList(removeFromStringList(sc.getUserList(), Long.toString(user.getUserid())));
-				subClubRepository.save(sc);
-			}
-		}
-		
-		if(user.getNewClubList()!=null){
-			String[] newclubids = user.getNewClubList().split(",");
-			for(String st : newclubids){
-				Club c = clubRepository.findByclubid(Long.parseLong(st));
-				c.setUserList(removeFromStringList(c.getUserList(), Long.toString(user.getUserid())));
-				clubRepository.save(c);
-			}
-		}
-
-		userRepository.delete(user);
-
-		return new GenericResponse("Your account is deleted");
 	}
 	
 }
