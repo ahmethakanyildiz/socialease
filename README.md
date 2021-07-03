@@ -20,7 +20,8 @@ The first commit to this repository is the school submitted version. In the next
 Lombok is a code generation library that can be integrated into the IDE while developing a Java project. Lombok integration is required in the developer version of this project! Otherwise, it will give an error.
 
 ##### Changes comes with second commit
-There were some issues with the deleteClub and updateClub functions. Deleting a club/subclub was causing some data not to be deleted and bloating the database. These two functions have been updated.
-Added deleteUser function.
+There were some issues with the deleteClub and updateClub functions. Deleting a club/subclub was causing some data not to be deleted and bloating the database. These two functions have been updated.</br>
+Added deleteUser function.</br>
 The evaluateReport function was able to ban the reported user. I changed it to delete instead of ban. So when a user is reported and banned, his account is deleted.
-Some visual improvements have been made.
+Some visual improvements have been made.</br>
+
