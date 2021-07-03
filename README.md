@@ -22,7 +22,7 @@ Lombok is a code generation library that can be integrated into the IDE while de
 ### The changes that came with the second commit and the decision I made
 There were some issues with the deleteClub and updateClub functions. Deleting a club/subclub was causing some data not to be deleted and bloating the database. These two functions have been updated.</br>
 Added deleteUser function.</br>
-The evaluateReport function was able to ban the reported user. I changed it to delete instead of ban. So when a user is reported and banned, his account is deleted.
+The evaluateReport function was able to ban the reported user. I changed it to delete instead of ban. So when a user is reported and banned, his account is deleted.</br>
 Some visual improvements have been made.</br></br>
 Initially, I was planning to make this project better by updating it from time to time. But I realized that this would take a lot of time. Instead of refactoring this project, I decided to reengineer it. I will reengineer this project using MERN stack technology. If we look at the final state of the project in general:</br>
 All functions work smoothly.</br>
