@@ -52,4 +52,14 @@ public class Review {
     public void setUserName(String userName){
         this.userName = userName;
     }
+
+	public Long getReviewid() {
+		return reviewid;
+	}
+
+	public void setReviewid(Long reviewid) {
+		this.reviewid = reviewid;
+	}
+    
+    
 }

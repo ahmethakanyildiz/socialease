@@ -17,14 +17,22 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mergen.socialease.model.Club;
+import com.mergen.socialease.model.Event;
 import com.mergen.socialease.model.Question;
+import com.mergen.socialease.model.Report;
+import com.mergen.socialease.model.Review;
 import com.mergen.socialease.model.SubClub;
 import com.mergen.socialease.model.User;
 import com.mergen.socialease.req_classes.SurveyAnswers;
 import com.mergen.socialease.req_classes.SurveyAnswersWithUserId;
 import com.mergen.socialease.req_classes.SurveyQuestion;
 import com.mergen.socialease.repository.ClubRepository;
+import com.mergen.socialease.repository.CommentRepository;
+import com.mergen.socialease.repository.EventRepository;
+import com.mergen.socialease.repository.PostRepository;
 import com.mergen.socialease.repository.QuestionRepository;
+import com.mergen.socialease.repository.ReportRepository;
+import com.mergen.socialease.repository.ReviewRepository;
 import com.mergen.socialease.repository.SubClubAdminRequestRepository;
 import com.mergen.socialease.repository.SubClubRepository;
 import com.mergen.socialease.repository.UserRepository;
@@ -44,6 +52,21 @@ public class ClubController {
 
 	@Autowired
 	private UserRepository userRepository;
+
+	@Autowired
+	private PostRepository postRepository;
+
+	@Autowired
+	private CommentRepository commentRepository;
+
+	@Autowired
+	private ReviewRepository reviewRepository;
+
+	@Autowired
+	private ReportRepository reportRepository;
+
+	@Autowired
+	private EventRepository eventRepository;
 
 	@SuppressWarnings("unused")
 	@Autowired
@@ -65,11 +88,14 @@ public class ClubController {
 				JSONObject subclubjson = new JSONObject();
 				subclubjson.put("id", subclub.getSubClubid());
 				subclubjson.put("name", subclub.getName());
-				if(subclub.getAdminid()!=null) {
+				if (subclub.getAdminid() != null) {
 					User adminOfSubClub = userRepository.findByUserid(subclub.getAdminid());
-					subclubjson.put("admin", adminOfSubClub.getUsername());
-				}
-				else {
+					try {
+						subclubjson.put("admin", adminOfSubClub.getUsername());
+					}catch(Exception e) {
+						subclubjson.put("admin", null);
+					}
+				} else {
 					subclubjson.put("admin", null);
 				}
 
@@ -399,15 +425,15 @@ public class ClubController {
 		return newClub;
 
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@GetMapping("/getnameoftheclub")
 	public JSONObject getNameOfTheClub(@RequestParam Long id, @CurrentUser User user) {
 		JSONObject json = new JSONObject();
 		try {
 			json.put("nameOfClub", clubRepository.findByclubid(id).getClubName());
+		} catch (Exception e) {
 		}
-		catch(Exception e) {}
 		return json;
 	}
 
@@ -536,6 +562,44 @@ public class ClubController {
 		return new GenericResponse("New club is added!");
 	}
 
+	public List<Long> postsWillBeDeleted(String subclubList) {
+		try {
+			List<Long> posts = new ArrayList<>();
+			for (String id : subclubList.split(",")) {
+				String postList = subClubRepository.findBysubClubid(Long.parseLong(id)).getPostList();
+				if (!(postList == null || postList.equals(""))) {
+					String[] postList2 = postList.split(",");
+					for (int i = 0; i < postList2.length; i++) {
+						posts.add(Long.parseLong(postList2[i]));
+					}
+				}
+			}
+			return posts;
+		} catch (Exception e) {
+			System.out.println("Ya hata var, ya da hiç post yok :)");
+			return null;
+		}
+
+	}
+
+	public List<Long> commentsWillBeDeleted(List<Long> postList) {
+		try {
+			List<Long> comments = new ArrayList<>();
+			for (int i = 0; i < postList.size(); i++) {
+				String[] comList = postRepository.findByPostid(postList.get(i)).getCommentList().split(",");
+				for (int j = 0; j < comList.length; j++) {
+					comments.add(Long.parseLong(comList[j]));
+				}
+
+			}
+			return comments;
+		} catch (Exception e) {
+			System.out.println("Ya hata var, ya da hiç comment yok :)");
+			return null;
+		}
+
+	}
+
 	@PostMapping("/mergen/admin/deleteclub")
 	public GenericResponse deleteClub(@RequestBody JSONObject deletedClub) {
 		String clubName = (String) deletedClub.get("name");
@@ -552,11 +616,11 @@ public class ClubController {
 				String usernewclubs = user.getNewClubList();
 
 				if (user.isSurveyAnswered() == true && user.isThereNewClub()) {
-					Boolean checkcontains = checkContainStringList(usernewclubs,  Long.toString(deletedId));
-					if(checkcontains) {
+					Boolean checkcontains = checkContainStringList(usernewclubs, Long.toString(deletedId));
+					if (checkcontains) {
 						String newclublist = removeFromStringList(usernewclubs, Long.toString(deletedId));
 						user.setNewClubList(newclublist);
-						if (newclublist==null && user.getNewSubClubList()==null)
+						if (newclublist == null && user.getNewSubClubList() == null)
 							user.setIsThereNewClub(false);
 					}
 				}
@@ -565,6 +629,10 @@ public class ClubController {
 		} catch (Exception e) {
 			return new GenericResponse("Error: Something is wrong!");
 		}
+
+		List<Long> postWillBeDeleted = postsWillBeDeleted(deletedSubClubList);
+		List<Long> commentsWillBeDeleted = commentsWillBeDeleted(postWillBeDeleted);
+
 		if (!(userListInClub == null || userListInClub.equals(""))) {
 			for (String userId : userListInClub.split(",")) {
 				User newUser = userRepository.findByUserid(Long.parseLong(userId));
@@ -580,12 +648,95 @@ public class ClubController {
 					String str = String.join(",", CIDfromUser2);
 					newUser.setClubList(str);
 				}
+
+				if (postWillBeDeleted != null) {
+					try {
+						// BİR KULÜP SİLİNDİĞİNDE USERDAN POSTLAR DA SİLİNİYOR
+						String[] postList = newUser.getPostList().split(",");
+						List<String> postList2 = Arrays.asList(postList);
+						String newPostList = "";
+						for (int i = 0; i < postList2.size(); i++) {
+							if (!postWillBeDeleted.contains(Long.parseLong(postList2.get(i)))) {
+								newPostList = newPostList + postList2.get(i) + ",";
+							}
+						}
+						if(!newPostList.equals("")) newPostList = newPostList.substring(0, newPostList.length() - 1);
+						else newPostList=null;
+						newUser.setPostList(newPostList);
+
+						// BİR KULÜP SİLİNDİĞİNDE USERDAN BEĞENDİĞİ POSTLAR DA SİLİNİYOR
+						String[] likedPostList = newUser.getLikeList().split(",");
+						List<String> likedPostList2 = Arrays.asList(likedPostList);
+						String newLikedPostList = "";
+						for (int i = 0; i < likedPostList2.size(); i++) {
+							if (!postWillBeDeleted.contains(Long.parseLong(likedPostList2.get(i)))) {
+								newLikedPostList = newLikedPostList + likedPostList2.get(i) + ",";
+							}
+						}
+						if(!newLikedPostList.equals("")) newLikedPostList = newLikedPostList.substring(0, newLikedPostList.length() - 1);
+						else newLikedPostList=null;
+						newUser.setLikeList(newLikedPostList);
+					} catch (Exception e) {
+						System.out.println("User'ın listlerinden post/liked post silme işleminde ya hata var, ya da silinecek bir şey yok :)");
+					}
+				}
+
+				if (commentsWillBeDeleted != null) {
+					try {
+						// BİR KULÜP SİLİNDİĞİNDE USERDAN YORUMLAR DA SİLİNİYOR
+						String[] commentList = newUser.getCommentList().split(",");
+						List<String> commentList2 = Arrays.asList(commentList);
+						String newCommentList = "";
+						for (int i = 0; i < commentList2.size(); i++) {
+							if (!commentsWillBeDeleted.contains(Long.parseLong(commentList2.get(i)))) {
+								newCommentList = newCommentList + commentList2.get(i) + ",";
+							}
+						}
+						if(!newCommentList.equals("")) newCommentList = newCommentList.substring(0, newCommentList.length() - 1);
+						else newCommentList=null;
+						newUser.setCommentList(newCommentList);
+					} catch (Exception e) {
+						System.out.println("User'ın listlerinden comment silme işleminde ya hata var, ya da silinecek bir şey yok :)");
+					}
+				}
+
 				userRepository.save(newUser);
 			}
 		}
 		for (String id : deletedSubClubList.split(",")) {
 			try {
+				// REPORT VE EVENTLERİN SİLİNMESİ
+				try {
+					for (Report rep : reportRepository.findAll()) {
+						if (rep.getSubClubid() == Long.parseLong(id)) {
+							reportRepository.deleteById(rep.getReportid());
+						}
+					}
+
+					for (Event eve : eventRepository.findAll()) {
+						if (eve.getSubclubid() == Long.parseLong(id)) {
+							eventRepository.deleteById(eve.getEventid());
+						}
+					}
+				} catch (Exception e) {
+					System.out.println("Report/Review delete operation is not successful!");
+				}
+
 				userListInSubClub = subClubRepository.findBysubClubid(Long.parseLong(id)).getUserList();
+
+				// SİLİNEN SUBCLUB'IN ADMİNİN VERSİNİ GÜNCELLEME
+				try {
+					if (!(subClubRepository.findBysubClubid(Long.parseLong(id)).getAdminid() == null
+							|| subClubRepository.findBysubClubid(Long.parseLong(id)).getAdminid() == -1)) {
+						long adminimizinIDsi = subClubRepository.findBysubClubid(Long.parseLong(id)).getAdminid();
+						User adminimiz = userRepository.findByUserid(adminimizinIDsi);
+						adminimiz.setIsSubClubAdmin(-1);
+						userRepository.save(adminimiz);
+					}
+				} catch (Exception e) {
+					System.out.println("Admin update is not succesfull");
+				}
+
 				subClubRepository.deleteById(Long.parseLong(id));
 				if (!(userListInSubClub == null || userListInSubClub.equals(""))) {
 					for (String userId : userListInSubClub.split(",")) {
@@ -620,6 +771,31 @@ public class ClubController {
 				return new GenericResponse("Error: Something is wrong!");
 			}
 		}
+
+		// POST VE COMMENTLERİ REPODAN SİLİYOR
+		try {
+			for (int i = 0; i < postWillBeDeleted.size(); i++) {
+				postRepository.deleteById(postWillBeDeleted.get(i));
+			}
+			for (int i = 0; i < commentsWillBeDeleted.size(); i++) {
+				commentRepository.deleteById(postWillBeDeleted.get(i));
+			}
+		} catch (Exception e) {
+			System.out.println("Posts/Comments delete operation is not successful (Maybe it is successful, look at the tabela)!");
+		}
+
+		// REVİEWLERİ REPODAN SİLİYOR
+		try {
+			for (Review rev : reviewRepository.findAll()) {
+				long revId = rev.getReviewid();
+				if (deletedId == revId) {
+					reviewRepository.deleteById(revId);
+				}
+			}
+		} catch (Exception e) {
+			System.out.println("Review delete operation is not successful!");
+		}
+
 		return new GenericResponse("Club is deleted!");
 	}
 
@@ -675,6 +851,8 @@ public class ClubController {
 			for (int i = 0; i < delSC.size(); i++) {
 				Map sc = delSC.get(i);
 				Long scId = ((Number) sc.get("id")).longValue();
+				List<Long> postWillBeDeleted = postsWillBeDeleted(Long.toString(scId));
+				List<Long> commentsWillBeDeleted = commentsWillBeDeleted(postWillBeDeleted);
 				if (subClubRepository.findBysubClubid(scId) == null) {
 					continue;
 				}
@@ -717,8 +895,92 @@ public class ClubController {
 							String strForNewUser = String.join(",", SCIDfromUser2);
 							newUser.setSubClubList(strForNewUser);
 						}
+
+						if (postWillBeDeleted != null) {
+							try {
+								// BİR ALT KULÜP SİLİNDİĞİNDE USERDAN POSTLAR DA SİLİNİYOR
+								String[] postList = newUser.getPostList().split(",");
+								List<String> postList2 = Arrays.asList(postList);
+								String newPostList = "";
+								for (int k = 0; k < postList2.size(); k++) {
+									if (!postWillBeDeleted.contains(Long.parseLong(postList2.get(k)))) {
+										newPostList = newPostList + postList2.get(k) + ",";
+									}
+								}
+								if (!newPostList.equals(""))
+									newPostList = newPostList.substring(0, newPostList.length() - 1);
+								else newPostList=null;
+								newUser.setPostList(newPostList);
+								// BİR ALT KULÜP SİLİNDİĞİNDE USERDAN BEĞENDİĞİ POSTLAR DA SİLİNİYOR
+								String[] likedPostList = newUser.getLikeList().split(",");
+								List<String> likedPostList2 = Arrays.asList(likedPostList);
+								String newLikedPostList = "";
+								for (int k = 0; k < likedPostList2.size(); k++) {
+									if (!postWillBeDeleted.contains(Long.parseLong(likedPostList2.get(k)))) {
+										newLikedPostList = newLikedPostList + likedPostList2.get(k) + ",";
+									}
+								}
+								if (!newLikedPostList.equals(""))
+									newLikedPostList = newLikedPostList.substring(0, newLikedPostList.length() - 1);
+								else newLikedPostList=null;
+								newUser.setLikeList(newLikedPostList);
+							} catch (Exception e) {
+								System.out.println("User'ın listlerinden post/liked post silme işleminde ya hata var, ya da silinecek bir şey yok :)");
+							}
+						}
+
+						if (commentsWillBeDeleted != null) {
+							try {
+								// BİR ALT KULÜP SİLİNDİĞİNDE USERDAN YORUMLAR DA SİLİNİYOR
+								String[] commentList = newUser.getCommentList().split(",");
+								List<String> commentList2 = Arrays.asList(commentList);
+								String newCommentList = "";
+								for (int k = 0; k < commentList2.size(); k++) {
+									if (!commentsWillBeDeleted.contains(Long.parseLong(commentList2.get(k)))) {
+										newCommentList = newCommentList + commentList2.get(k) + ",";
+									}
+								}
+								if (!newCommentList.equals(""))
+									newCommentList = newCommentList.substring(0, newCommentList.length() - 1);
+								else newCommentList=null;
+								newUser.setCommentList(newCommentList);
+							} catch (Exception e) {
+								System.out.println("User'ın listlerinden comment silme işleminde ya hata var, ya da silinecek bir şey yok :)");
+							}
+						}
+
 						userRepository.save(newUser);
 					}
+				}
+
+				// REPORT VE EVENTLERİN SİLİNMESİ
+				try {
+					for (Report rep : reportRepository.findAll()) {
+						if (rep.getSubClubid() == scId) {
+							reportRepository.deleteById(rep.getReportid());
+						}
+					}
+
+					for (Event eve : eventRepository.findAll()) {
+						if (eve.getSubclubid() == scId) {
+							eventRepository.deleteById(eve.getEventid());
+						}
+					}
+				} catch (Exception e) {
+					System.out.println("Report/Review delete operation is not successful!");
+				}
+
+				// SİLİNEN SUBCLUB'IN ADMİNİN VERSİNİ GÜNCELLEME
+				try {
+					if (!(subClubRepository.findBysubClubid(scId).getAdminid() == null
+							|| subClubRepository.findBysubClubid(scId).getAdminid() == -1)) {
+						long adminimizinIDsi = subClubRepository.findBysubClubid(scId).getAdminid();
+						User adminimiz = userRepository.findByUserid(adminimizinIDsi);
+						adminimiz.setIsSubClubAdmin(-1);
+						userRepository.save(adminimiz);
+					}
+				} catch (Exception e) {
+					System.out.println("Admin update is not succesfull");
 				}
 
 				subClubRepository.deleteById(scId);
@@ -733,17 +995,29 @@ public class ClubController {
 					String usernewsubclubs = user.getNewSubClubList();
 
 					if (user.isSurveyAnswered() == true && user.isThereNewClub()) {
-						Boolean checkcontains = checkContainStringList(usernewsubclubs,  Long.toString(scId));
-						if(checkcontains) {
+						Boolean checkcontains = checkContainStringList(usernewsubclubs, Long.toString(scId));
+						if (checkcontains) {
 							String newsubclublist = removeFromStringList(usernewsubclubs, Long.toString(scId));
 							user.setNewSubClubList(newsubclublist);
-							if (newsubclublist==null && user.getNewClubList()==null)
+							if (newsubclublist == null && user.getNewClubList() == null)
 								user.setIsThereNewClub(false);
 						}
 					}
 					userRepository.save(user);
 				}
-				
+
+				// POST VE COMMENTLERİ REPODAN SİLİYOR
+				try {
+					for (int m = 0; m < postWillBeDeleted.size(); m++) {
+						postRepository.deleteById(postWillBeDeleted.get(m));
+					}
+					for (int m = 0; m < commentsWillBeDeleted.size(); m++) {
+						commentRepository.deleteById(commentsWillBeDeleted.get(m));
+					}
+				} catch (Exception e) {
+					System.out.println("Posts/Comments delete operation is not successful (Maybe it is successful, look at the tabela)!");
+				}
+
 			}
 			for (int j = 0; j < checkTheseUsers.size(); j++) {
 				User checkedUser = userRepository.findByUserid(Long.parseLong(checkTheseUsers.get(j)));
@@ -896,13 +1170,13 @@ public class ClubController {
 							user.setIsThereNewClub(true);
 							try {
 								if (user.getNewSubClubList() == null)
-								user.setNewSubClubList(subclubid);
-							else
-								user.setNewSubClubList(user.getNewSubClubList() + "," + subclubid);
-							}catch(Exception e) {
-								
+									user.setNewSubClubList(subclubid);
+								else
+									user.setNewSubClubList(user.getNewSubClubList() + "," + subclubid);
+							} catch (Exception e) {
+
 							}
-							
+
 						}
 						userRepository.save(user);
 					}
@@ -1209,7 +1483,7 @@ public class ClubController {
 	@PostMapping("/surveynewclubs")
 	public GenericResponse surveyNewClubs(@RequestBody final SurveyAnswersWithUserId survey,
 			@CurrentUser User currentUser) {
-		
+
 		if (currentUser.isThereNewClub() == false
 				|| (currentUser.getNewClubList() == null || currentUser.getNewClubList().equals(""))
 						&& (currentUser.getNewSubClubList() == null || currentUser.getNewSubClubList().equals(""))) {
@@ -1333,7 +1607,9 @@ public class ClubController {
 				}
 				for (int j2 = 0; j2 < arraylistsubclub.size(); j2++) {
 					float clubscore = arraylistclub.get(clubindex).score;
-					if (arraylistsubclub.get(j2).subclubid == subclubid && clubscore >= 3 || (arraylistsubclub.get(j2).subclubid == subclubid && userexistclubs.contains(Long.toString(clubid)))) {
+					if (arraylistsubclub.get(j2).subclubid == subclubid && clubscore >= 3
+							|| (arraylistsubclub.get(j2).subclubid == subclubid
+									&& userexistclubs.contains(Long.toString(clubid)))) {
 						if (arraylistsubclub.get(j2).score == 0) {
 							arraylistsubclub.get(j2).score = answerquestion;
 							arraylistsubclub.get(j2).total = coefficient;
@@ -1446,6 +1722,7 @@ public class ClubController {
 
 		return new GenericResponse("Success: Survey completed!");
 	}
+
 	private String removeFromStringList(String strList, String removedid) {
 
 		String[] ids = strList.split(",");
@@ -1483,7 +1760,7 @@ public class ClubController {
 	}
 
 	private Boolean checkContainStringList(String strList, String removedid) {
-		if(strList==null)
+		if (strList == null)
 			return false;
 		String[] ids = strList.split(",");
 

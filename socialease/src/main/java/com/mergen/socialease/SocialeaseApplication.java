@@ -8,7 +8,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.mergen.socialease.model.Admin;
+import com.mergen.socialease.model.User;
 import com.mergen.socialease.repository.AdminRepository;
+import com.mergen.socialease.repository.UserRepository;
 
 @SpringBootApplication
 public class SocialeaseApplication {
@@ -18,7 +20,7 @@ public class SocialeaseApplication {
     }
 	
 	@Bean
-	CommandLineRunner createInitialAdmin(AdminRepository adminRepository) {
+	CommandLineRunner createInitialAdmin(AdminRepository adminRepository, UserRepository userRepository) {
 		PasswordEncoder passEncoder = new BCryptPasswordEncoder();
 		return (args) -> {
 			Admin admin= new Admin();
@@ -27,6 +29,7 @@ public class SocialeaseApplication {
 			if(adminRepository.findByUsername("admin")==null) {
 				adminRepository.save(admin);
 			}
+			
 		};
 	}
 }

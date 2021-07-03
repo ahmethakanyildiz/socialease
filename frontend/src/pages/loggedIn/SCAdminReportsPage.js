@@ -30,9 +30,7 @@ class SCAdminReportsPage extends Component {
       ban: b,
     };
     try {
-      console.log("X");
       await evaluateReport(req);
-      console.log("y");
       const response = await getReports();
       console.log(response);
       this.setState({ reports: response.data });
@@ -140,7 +138,7 @@ class SCAdminReportsPage extends Component {
                             }}
                             onClick={() => this.evaluate(r.reportid, true)}
                           >
-                            Ban this user
+                            Delete this user
                           </h5>
                           <h5
                             style={{
