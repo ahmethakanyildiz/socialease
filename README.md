@@ -28,6 +28,8 @@ Initially, I was planning to make this project better by updating it from time t
 All functions work smoothly.</br>
 Satisfactory in terms of user interface.</br>
 It contains some bugs.</br>
-The project structure is somewhat complex. The reason of this is that it is a school project and it is tried to be done in a very short time. Also, it's the complexity of the project that prompted me to reengineer it.
+The project structure is somewhat complex. The reason of this complexity is that it is a school project and it is tried to be done in a very short time. Also, it's the complexity of the project that prompted me to reengineer it.<br/>
+Some bad design decisions could not be avoided. For example, we decided to use a relational database at the beginning, after some time we decided that we did not need relationality. As a result, we did not use relationality in a relational database.
+
 
 
