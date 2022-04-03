@@ -30,7 +30,9 @@ Satisfactory in terms of user interface.</br>
 It contains some bugs.</br>
 The project structure is somewhat complex. The reason of this complexity is that it is a school project and it is tried to be done in a very short time.</br>
 During the development process, we could not take full advantage of the features and opportunities of the technologies we use. This was because we did not have much experience in the technologies we used.</br>
-The complexity of the project and failure to use technologies properly led me to reengineer it.
+The complexity of the project and failure to use technologies properly led me to reengineer it.<br/>
+### Announcement about the Socialease application to be developed with MEAN
+I started to reengineer this application with MEAN Stack technology, but for some reason I could not spare time. Since it has been a long time and there are other projects that I want to develop, I decided to give up this project and wanted to write it here.
 
 
 
